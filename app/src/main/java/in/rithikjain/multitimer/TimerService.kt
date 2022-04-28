@@ -9,11 +9,24 @@ import kotlin.collections.HashMap
 
 class TimerService : Service() {
     companion object {
+        // Channel ID for notifications
         const val CHANNEL_ID = "Multi_Timer_Notifications"
+
+        // Service Actions
         const val START = "START"
         const val PAUSE = "PAUSE"
         const val RESET = "RESET"
         const val GET_STATUS = "GET_STATUS"
+
+        // Intent Extras
+        const val TIMER_ID = "TIMER_ID"
+        const val TIMER_ACTION = "TIMER_ACTION"
+        const val TIME_ELAPSED = "TIME_ELAPSED"
+        const val IS_TIMER_RUNNING = "IS_TIMER_RUNNING"
+
+        // Intent Actions
+        const val TIMER_TICK = "TIMER_TICK"
+        const val TIMER_STATUS = "TIMER_STATUS"
     }
 
     private val timeMap = HashMap<Int, Int>()
@@ -27,9 +40,12 @@ class TimerService : Service() {
 
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val timerID = intent?.getIntExtra("TimerID", -1) ?: 0
+        val timerID = intent?.getIntExtra(TIMER_ID, -1) ?: 0
+        val action = intent?.getStringExtra(TIMER_ACTION)!!
 
-        when (intent?.getStringExtra("TimerAction")!!) {
+        Log.d("Timer", "onStartCommand Action: $action")
+
+        when (action) {
             START -> startTimer(timerID)
             PAUSE -> pauseTimer(timerID)
             RESET -> resetTimer(timerID)
@@ -47,10 +63,11 @@ class TimerService : Service() {
         timersMap[timerID]!!.scheduleAtFixedRate(object : TimerTask() {
             override fun run() {
                 val timerIntent = Intent()
-                timerIntent.action = "Timer"
+                timerIntent.action = TIMER_TICK
 
-                timeMap[timerID] = timeMap[timerID]!!.plus(1)
-                timerIntent.putExtra("TimeElapsed", timeMap[timerID] ?: 0)
+                timeMap[timerID] = timeMap[timerID]?.plus(1) ?: 0
+
+                timerIntent.putExtra(TIME_ELAPSED, timeMap[timerID] ?: 0)
                 sendBroadcast(timerIntent)
             }
         }, 0, 1000)
@@ -63,14 +80,16 @@ class TimerService : Service() {
     }
 
     private fun resetTimer(timerID: Int) {
-
+        pauseTimer(timerID)
+        timeMap[timerID] = 0
+        sendStatus(timerID)
     }
 
     private fun sendStatus(timerID: Int) {
         val statusIntent = Intent()
-        statusIntent.action = "TimerStatus"
-        statusIntent.putExtra("IsTimerRunning", isTimerRunningMap[timerID] ?: false)
-        statusIntent.putExtra("TimeElapsed", timeMap[timerID] ?: 0)
+        statusIntent.action = TIMER_STATUS
+        statusIntent.putExtra(IS_TIMER_RUNNING, isTimerRunningMap[timerID] ?: false)
+        statusIntent.putExtra(TIME_ELAPSED, timeMap[timerID] ?: 0)
         sendBroadcast(statusIntent)
     }
 }
