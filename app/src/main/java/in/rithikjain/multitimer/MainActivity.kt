@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -25,14 +26,14 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        getTimerStatus(0)
+        getTimerStatus(1)
 
         binding.toggleButton.setOnClickListener {
-            if (isTimerRunning) pauseTimer(0) else startTimer(0)
+            if (isTimerRunning) pauseTimer(1) else startTimer(1)
         }
 
         binding.resetImageView.setOnClickListener {
-            resetTimer(0)
+            resetTimer(1)
         }
     }
 
