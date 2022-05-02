@@ -5,12 +5,12 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
+import android.graphics.Color
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import java.util.*
-import kotlin.collections.HashMap
 
 class TimerService : Service() {
     companion object {
@@ -22,6 +22,8 @@ class TimerService : Service() {
         const val PAUSE = "PAUSE"
         const val RESET = "RESET"
         const val GET_STATUS = "GET_STATUS"
+        const val MOVE_TO_FOREGROUND = "MOVE_TO_FOREGROUND"
+        const val MOVE_TO_BACKGROUND = "MOVE_TO_BACKGROUND"
 
         // Intent Extras
         const val TIMER_ID = "TIMER_ID"
@@ -37,6 +39,8 @@ class TimerService : Service() {
     private val timeMap = HashMap<Int, Int>()
     private val timersMap = HashMap<Int, Timer>()
     private val isTimerRunningMap = HashMap<Int, Boolean>().withDefault { false }
+
+    private var updateTimer = Timer()
 
     override fun onBind(p0: Intent?): IBinder? {
         Log.d("Timer", "Timer onBind")
@@ -57,15 +61,11 @@ class TimerService : Service() {
             PAUSE -> pauseTimer(timerID)
             RESET -> resetTimer(timerID)
             GET_STATUS -> sendStatus(timerID)
+            MOVE_TO_FOREGROUND -> moveToForeground()
+            MOVE_TO_BACKGROUND -> moveToBackground()
         }
 
         return START_STICKY
-    }
-
-    override fun onTaskRemoved(rootIntent: Intent?) {
-        super.onTaskRemoved(rootIntent)
-
-        Log.d("Timer", "onTaskRemoved")
     }
 
     private fun startTimer(timerID: Int) {
@@ -80,28 +80,50 @@ class TimerService : Service() {
 
                 timeMap[timerID] = timeMap[timerID]?.plus(1) ?: 0
 
-                updateNotification(timerID)
-
                 timerIntent.putExtra(TIME_ELAPSED, timeMap[timerID] ?: 0)
                 sendBroadcast(timerIntent)
             }
         }, 0, 1000)
+    }
 
-        startForeground(timerID, buildNotification(timerID))
+    private fun moveToForeground() {
+        val runningIDs = mutableListOf<Int>()
+
+        for ((timerID, value) in isTimerRunningMap) {
+            if (value) {
+                startForeground(timerID, buildNotification(timerID))
+                runningIDs.add(timerID)
+            }
+        }
+
+        updateTimer = Timer()
+
+        if (runningIDs.isNotEmpty()) {
+            updateTimer.scheduleAtFixedRate(object : TimerTask() {
+                override fun run() {
+                    for (timerID in runningIDs) {
+                        updateNotification(timerID)
+                    }
+                }
+            }, 0, 1000)
+        }
+    }
+
+    private fun moveToBackground() {
+        updateTimer.cancel()
+        stopForeground(true)
     }
 
     private fun pauseTimer(timerID: Int) {
         timersMap[timerID]?.cancel()
         isTimerRunningMap[timerID] = false
         sendStatus(timerID)
-        updateNotification(timerID)
     }
 
     private fun resetTimer(timerID: Int) {
         pauseTimer(timerID)
         timeMap[timerID] = 0
         sendStatus(timerID)
-        stopForeground(true)
     }
 
     private fun sendStatus(timerID: Int) {
@@ -117,7 +139,7 @@ class TimerService : Service() {
             val notificationChannel = NotificationChannel(
                 CHANNEL_ID,
                 "Multi Timer",
-                NotificationManager.IMPORTANCE_MIN
+                NotificationManager.IMPORTANCE_LOW
             )
             val notificationManager = getSystemService(NotificationManager::class.java)
             notificationManager.createNotificationChannel(notificationChannel)
@@ -136,7 +158,6 @@ class TimerService : Service() {
         val seconds: Int = timeMap[timerID]?.rem(60) ?: 0
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setOngoing(true)
             .setContentTitle(title)
             .setContentText(
                 "${"%02d".format(hours)}:${"%02d".format(minutes)}:${
@@ -145,7 +166,10 @@ class TimerService : Service() {
                     )
                 }"
             )
+            .setColorized(true)
+            .setColor(Color.parseColor("#BEAEE2"))
             .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setOnlyAlertOnce(true)
             .build()
     }
 

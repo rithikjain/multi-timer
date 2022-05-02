@@ -6,10 +6,9 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 
 class MainActivity : AppCompatActivity() {
@@ -39,6 +38,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
+
+        // Moving the service to background when the app in visible
+        moveToBackground()
 
         // Receiving timer status from service
         val statusFilter = IntentFilter()
@@ -70,6 +72,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
+
+        // Moving the service to foreground when the app is in background / not visible
+        moveToForeground()
 
         unregisterReceiver(statusReceiver)
         unregisterReceiver(timerReceiver)
@@ -123,6 +128,18 @@ class MainActivity : AppCompatActivity() {
         val timerService = Intent(this, TimerService::class.java)
         timerService.putExtra(TimerService.TIMER_ID, timerID)
         timerService.putExtra(TimerService.TIMER_ACTION, TimerService.RESET)
+        startService(timerService)
+    }
+
+    private fun moveToForeground() {
+        val timerService = Intent(this, TimerService::class.java)
+        timerService.putExtra(TimerService.TIMER_ACTION, TimerService.MOVE_TO_FOREGROUND)
+        startService(timerService)
+    }
+
+    private fun moveToBackground() {
+        val timerService = Intent(this, TimerService::class.java)
+        timerService.putExtra(TimerService.TIMER_ACTION, TimerService.MOVE_TO_BACKGROUND)
         startService(timerService)
     }
 }
