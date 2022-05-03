@@ -17,6 +17,16 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <TextView
+        android:id="@+id/page_number_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="32dp"
+        android:text="1 out of 5"
+        android:textSize="14sp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/timer_text_view" />
+
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/timer_view_pager"
         android:layout_width="0dp"
@@ -25,7 +35,7 @@
         app:layout_constraintBottom_toTopOf="@id/circle_indicator"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/timer_text_view" />
+        app:layout_constraintTop_toBottomOf="@id/page_number_text_view" />
 
     <me.relex.circleindicator.CircleIndicator3
         android:id="@+id/circle_indicator"

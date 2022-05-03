@@ -1,16 +1,13 @@
 package `in`.rithikjain.multitimer
 
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.Service
+import android.app.*
 import android.content.Intent
-import android.graphics.Color
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import java.util.*
+
 
 class TimerService : Service() {
     companion object {
@@ -54,7 +51,7 @@ class TimerService : Service() {
         val timerID = intent?.getIntExtra(TIMER_ID, -1) ?: 0
         val action = intent?.getStringExtra(TIMER_ACTION)!!
 
-        Log.d("Timer", "onStartCommand Action: $action")
+        Log.d("Timer", "onStartCommand Action: $action for timerID: $timerID")
 
         when (action) {
             START -> startTimer(timerID)
@@ -76,7 +73,7 @@ class TimerService : Service() {
         timersMap[timerID]!!.scheduleAtFixedRate(object : TimerTask() {
             override fun run() {
                 val timerIntent = Intent()
-                timerIntent.action = TIMER_TICK
+                timerIntent.action = "$TIMER_TICK$timerID"
 
                 timeMap[timerID] = timeMap[timerID]?.plus(1) ?: 0
 
@@ -112,6 +109,15 @@ class TimerService : Service() {
     private fun moveToBackground() {
         updateTimer.cancel()
         stopForeground(true)
+
+        for ((timerID, _) in isTimerRunningMap) {
+            val notificationManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                getSystemService(NotificationManager::class.java)
+            } else {
+                TODO("VERSION.SDK_INT < M")
+            }
+            notificationManager.cancel(timerID)
+        }
     }
 
     private fun pauseTimer(timerID: Int) {
@@ -128,7 +134,7 @@ class TimerService : Service() {
 
     private fun sendStatus(timerID: Int) {
         val statusIntent = Intent()
-        statusIntent.action = TIMER_STATUS
+        statusIntent.action = "$TIMER_STATUS$timerID"
         statusIntent.putExtra(IS_TIMER_RUNNING, isTimerRunningMap[timerID] ?: false)
         statusIntent.putExtra(TIME_ELAPSED, timeMap[timerID] ?: 0)
         sendBroadcast(statusIntent)
@@ -157,8 +163,12 @@ class TimerService : Service() {
         val minutes: Int = timeMap[timerID]?.div(60) ?: 0
         val seconds: Int = timeMap[timerID]?.rem(60) ?: 0
 
+        val intent = Intent(this, MainActivity::class.java)
+        val pIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT)
+
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(title)
+            .setOngoing(true)
             .setContentText(
                 "${"%02d".format(hours)}:${"%02d".format(minutes)}:${
                     "%02d".format(
@@ -166,10 +176,10 @@ class TimerService : Service() {
                     )
                 }"
             )
-            .setColorized(true)
-            .setColor(Color.parseColor("#BEAEE2"))
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setOnlyAlertOnce(true)
+            .setContentIntent(pIntent)
+            .setAutoCancel(true)
             .build()
     }
 
