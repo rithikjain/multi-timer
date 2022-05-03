@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.viewpager2.widget.ViewPager2
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -25,15 +26,20 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        getTimerStatus(1)
+        binding.timerViewPager.adapter = TimerViewPagerAdapter()
+        binding.timerViewPager.orientation = ViewPager2.ORIENTATION_HORIZONTAL
 
-        binding.toggleButton.setOnClickListener {
+        binding.circleIndicator.setViewPager(binding.timerViewPager)
+
+//        getTimerStatus(1)
+
+/*        binding.toggleButton.setOnClickListener {
             if (isTimerRunning) pauseTimer(1) else startTimer(1)
         }
 
         binding.resetImageView.setOnClickListener {
             resetTimer(1)
-        }
+        }*/
     }
 
     override fun onStart() {
@@ -52,8 +58,8 @@ class MainActivity : AppCompatActivity() {
                 isTimerRunning = isRunning
                 val timeElapsed = p1.getIntExtra(TimerService.TIME_ELAPSED, 0)
 
-                updateLayout(isTimerRunning)
-                updateTimerValue(timeElapsed)
+                /*updateLayout(isTimerRunning)
+                updateTimerValue(timeElapsed)*/
             }
         }
         registerReceiver(statusReceiver, statusFilter)
@@ -64,7 +70,7 @@ class MainActivity : AppCompatActivity() {
         timerReceiver = object : BroadcastReceiver() {
             override fun onReceive(p0: Context?, p1: Intent?) {
                 val timeElapsed = p1?.getIntExtra(TimerService.TIME_ELAPSED, 0)!!
-                updateTimerValue(timeElapsed)
+//                updateTimerValue(timeElapsed)
             }
         }
         registerReceiver(timerReceiver, timerFilter)
@@ -80,7 +86,7 @@ class MainActivity : AppCompatActivity() {
         unregisterReceiver(timerReceiver)
     }
 
-    @SuppressLint("SetTextI18n")
+    /*@SuppressLint("SetTextI18n")
     private fun updateTimerValue(timeElapsed: Int) {
         val hours: Int = (timeElapsed / 60) / 60
         val minutes: Int = timeElapsed / 60
@@ -101,7 +107,7 @@ class MainActivity : AppCompatActivity() {
             binding.deleteImageView.visibility = View.VISIBLE
             binding.resetImageView.visibility = View.VISIBLE
         }
-    }
+    }*/
 
     private fun getTimerStatus(timerID: Int) {
         val timerService = Intent(this, TimerService::class.java)

@@ -3,8 +3,11 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Programming/Android/MultiTimer/app/src/main/res/drawable/circleindicator_round.xml" value="0.195" />
         <entry key="..\:/Programming/Android/MultiTimer/app/src/main/res/drawable/round_shape.xml" value="0.195" />
+        <entry key="..\:/Programming/Android/MultiTimer/app/src/main/res/drawable/rounded_corners.xml" value="0.195" />
         <entry key="..\:/Programming/Android/MultiTimer/app/src/main/res/layout/activity_main.xml" value="0.34782608695652173" />
+        <entry key="..\:/Programming/Android/MultiTimer/app/src/main/res/layout/timer_page.xml" value="0.34782608695652173" />
       </map>
     </option>
   </component>
