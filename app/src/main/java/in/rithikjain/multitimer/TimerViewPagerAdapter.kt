@@ -1,23 +1,12 @@
 package `in`.rithikjain.multitimer
 
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.recyclerview.widget.RecyclerView
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
+import androidx.viewpager2.adapter.FragmentStateAdapter
 
-class TimerViewPagerAdapter : RecyclerView.Adapter<TimerViewPagerAdapter.ViewHolder>() {
+class TimerViewPagerAdapter(fa: FragmentActivity) : FragmentStateAdapter(fa) {
 
-    inner class ViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
+    override fun getItemCount(): Int = 5
 
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.timer_page, parent, false))
-    }
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-
-    }
-
-    override fun getItemCount() = 4
+    override fun createFragment(position: Int): Fragment = TimerFragment()
 }

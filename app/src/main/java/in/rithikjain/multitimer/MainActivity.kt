@@ -7,9 +7,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
+import androidx.viewpager2.widget.MarginPageTransformer
 import androidx.viewpager2.widget.ViewPager2
 
 class MainActivity : AppCompatActivity() {
@@ -17,6 +16,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var statusReceiver: BroadcastReceiver
     private lateinit var timerReceiver: BroadcastReceiver
+
+    private lateinit var timerViewAdapter: TimerViewPagerAdapter
 
     private var isTimerRunning = false
 
@@ -26,8 +27,12 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.timerViewPager.adapter = TimerViewPagerAdapter()
-        binding.timerViewPager.orientation = ViewPager2.ORIENTATION_HORIZONTAL
+        timerViewAdapter = TimerViewPagerAdapter(this)
+        binding.timerViewPager.apply {
+            adapter = timerViewAdapter
+            orientation = ViewPager2.ORIENTATION_HORIZONTAL
+            setPageTransformer(MarginPageTransformer(100))
+        }
 
         binding.circleIndicator.setViewPager(binding.timerViewPager)
 
